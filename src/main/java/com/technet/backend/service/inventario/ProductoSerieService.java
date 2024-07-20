@@ -3,6 +3,7 @@ package com.technet.backend.service.inventario;
 import com.technet.backend.model.dto.inventario.ProductoResponse;
 import com.technet.backend.model.dto.inventario.ProductoSerieResponse;
 import com.technet.backend.model.dto.inventario.ProductoSeriesRequest;
+import com.technet.backend.model.entity.globales.Archivo;
 import com.technet.backend.model.entity.inventario.Lote;
 import com.technet.backend.model.entity.inventario.Producto;
 
@@ -96,7 +97,8 @@ public class ProductoSerieService {
                 producto.getSubcategoria().getNombre(),
                 producto.getGarantia_cliente(),
                 producto.getGarantia_total(),
-                producto.getImagenuri()
+                producto.getArchivo_Principal() != null ? producto.getArchivo_Principal().getUrl() : "",
+                producto.getArchivos().stream().map(Archivo::getUrl).collect(Collectors.toList())
         );
     }
     public ProductoSerieResponse mapToProductoSerieResponse(ProductoSerie productoSerie){

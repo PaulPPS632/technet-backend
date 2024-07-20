@@ -48,14 +48,21 @@ public class ProductoController {
 
     @PostMapping(consumes = {"multipart/form-data"})
     @ResponseStatus(HttpStatus.CREATED)
-    public void save(@RequestPart("producto") ProductoRequest producto, @RequestPart("files") List<MultipartFile> files){
-        productoService.save(producto, files);
+    public void save(
+            @RequestPart("producto") ProductoRequest producto,
+            @RequestPart("files") List<MultipartFile> files,
+            @RequestPart("fileprincipal") MultipartFile fileprincipal){
+        productoService.save(producto, files, fileprincipal);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(consumes = {"multipart/form-data"})
     @ResponseStatus(HttpStatus.OK)
-    public void update(@PathVariable("id") String id, @RequestBody ProductoRequest producto){
-        productoService.update(id, producto);
+    public void update(
+            @RequestPart("producto") ProductoRequest producto,
+            @RequestPart("files") List<MultipartFile> files,
+            @RequestPart("fileprincipal") MultipartFile fileprincipal
+    ){
+        productoService.update(producto, files,fileprincipal);
     }
 
     @DeleteMapping("/{id}")

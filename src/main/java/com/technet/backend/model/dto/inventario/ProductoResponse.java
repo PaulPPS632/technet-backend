@@ -15,6 +15,7 @@ public record ProductoResponse(
     String subcategoria,
     Double garantia_cliente,
     Double garantia_total,
+    String imagen_principal,
     List<String> imageurl
     ) {
     

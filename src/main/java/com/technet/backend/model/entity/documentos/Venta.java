@@ -63,6 +63,7 @@ public class Venta {
     @ManyToOne
     @JoinColumn(name = "id_tipomoneda")
     private TipoMoneda tipomoneda;
+
     private Double tipo_cambio;
 
     @OneToMany(mappedBy = "venta")

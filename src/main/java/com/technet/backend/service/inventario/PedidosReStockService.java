@@ -5,6 +5,7 @@ import com.technet.backend.model.dto.inventario.ProductoResponse;
 import com.technet.backend.model.dto.users.PrivilegioResponse;
 import com.technet.backend.model.dto.users.RolResponse;
 import com.technet.backend.model.dto.users.UserResponse;
+import com.technet.backend.model.entity.globales.Archivo;
 import com.technet.backend.model.entity.inventario.PedidosReStock;
 import com.technet.backend.model.entity.inventario.Producto;
 import com.technet.backend.model.entity.users.Privilegio;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -83,7 +85,8 @@ public class PedidosReStockService {
                 producto.getSubcategoria().getNombre(),
                 producto.getGarantia_cliente(),
                 producto.getGarantia_total(),
-                producto.getImagenuri()
+                producto.getArchivo_Principal() != null ? producto.getArchivo_Principal().getUrl() : "",
+                producto.getArchivos().stream().map(Archivo::getUrl).collect(Collectors.toList())
         );
     }
     private UserResponse maptoUserResponse(User user){

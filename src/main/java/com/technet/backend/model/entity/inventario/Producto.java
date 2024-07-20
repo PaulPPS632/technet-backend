@@ -2,6 +2,7 @@ package com.technet.backend.model.entity.inventario;
 
 import java.util.List;
 
+import com.technet.backend.model.entity.globales.Archivo;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,10 +32,17 @@ public class Producto {
     private Double garantia_total;
     private Double Stock;
     private Double precio;
-    @ElementCollection
-    @CollectionTable(name = "producto_imagenuri", joinColumns = @JoinColumn(name = "producto_id"))
-    @Column(name = "imagenuri")
-    private List<String> imagenuri;
+    @ManyToOne
+    @JoinColumn(name = "id_archivo")
+    private Archivo archivo_Principal;
+
+    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JoinTable(
+            name = "producto_archivo",
+            joinColumns = @JoinColumn(name = "producto_id"),
+            inverseJoinColumns = @JoinColumn(name = "archivo_id")
+    )
+    private List<Archivo> archivos;
 
     @ManyToOne
     @JoinColumn(name = "id_categoriamarca")
@@ -44,8 +52,7 @@ public class Producto {
     @JoinColumn(name = "id_subcategoria")
     private SubCategoria subcategoria;
 
-    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL)
     private List<Lote> lote;
-
 
 }

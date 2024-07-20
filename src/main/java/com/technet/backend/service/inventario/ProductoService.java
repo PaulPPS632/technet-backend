@@ -1,8 +1,8 @@
 package com.technet.backend.service.inventario;
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import com.technet.backend.exception.ResourceNotFoundException;
+import com.technet.backend.model.entity.globales.Archivo;
 import com.technet.backend.model.entity.inventario.SubCategoria;
+import com.technet.backend.repository.globales.ArchivoRepository;
 import com.technet.backend.repository.inventario.CategoriaMarcaRepository;
 import com.technet.backend.repository.inventario.ProductoRepository;
 import com.technet.backend.model.dto.inventario.ProductoRequest;
@@ -12,11 +12,13 @@ import com.technet.backend.model.entity.inventario.Producto;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.technet.backend.repository.inventario.ProductoSpecifications;
 import com.technet.backend.repository.inventario.SubCategoriaRepository;
+import com.technet.backend.service.globales.S3service;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -30,7 +32,14 @@ public class ProductoService {
     private final ProductoRepository productoRepository;
     private final CategoriaMarcaRepository categoriaMarcaRepository;
     private final SubCategoriaRepository subCategoriaRepository;
+    private final S3service s3service;
+    private final ArchivoRepository archivoRepository;
 
+    @Value("${aws.namebucket}")
+    private String namebucket;
+
+    @Value("${aws.region}")
+    private String region;
 
     public List<ProductoResponse> getAll(){
         List<Producto> productos = productoRepository.findAll();
@@ -46,7 +55,7 @@ public class ProductoService {
         }
     }
 
-    public void save(ProductoRequest producto, List<MultipartFile> files){
+    public void save(ProductoRequest producto, List<MultipartFile> files, MultipartFile fileprincipal){
         Optional<CategoriaMarca> categoriamarcaoptional = categoriaMarcaRepository.findById(producto.id_categoriamarca());
         if(categoriamarcaoptional.isEmpty())throw new ResourceNotFoundException("CategoriaMarca no encontrado con id: " + producto.id_categoriamarca());
         Optional<SubCategoria> subCategoriaOptional = subCategoriaRepository.findById(producto.id_subcategoria());
@@ -54,20 +63,9 @@ public class ProductoService {
 
         CategoriaMarca categoriamarca = categoriamarcaoptional.get();
         SubCategoria subCategoria = subCategoriaOptional.get();
-        List<String> imageUris = new ArrayList<>();
-        Map config = new HashMap();
-        config.put("cloud_name", "dux4vjqzw");
-        config.put("api_key", "679936916786432");
-        config.put("api_secret", "ObFAxRATJF8SSRI_gKI8BHkqQQA");
-
-        Cloudinary cloudinary = new Cloudinary(config);
+        List<Archivo> archivos = new ArrayList<>();
         for (MultipartFile file : files) {
-            try {
-                String url = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap()).get("url").toString();
-                imageUris.add(url);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            archivos.add(s3service.uploadObject(file,"imagen_producto"));
         }
         Producto nuevo = new Producto().builder()
                 .nombre(producto.nombre())
@@ -79,7 +77,8 @@ public class ProductoService {
                 .subcategoria(subCategoria)
                 .garantia_cliente(producto.garantia_cliente())
                 .garantia_total(producto.garantia_total())
-                .imagenuri(imageUris)
+                .archivo_Principal(s3service.uploadObject(fileprincipal,"imagen_producto"))
+                .archivos(archivos)
                 .build();
 
         if(categoriamarca.getProductos() == null){
@@ -96,10 +95,22 @@ public class ProductoService {
         categoriaMarcaRepository.save(categoriamarca);
     }
 
-    public void update(String id, ProductoRequest productoRequest) {
-        Optional<Producto> productoOptional = productoRepository.findById(id);
+    private void uploadFile(MultipartFile file)throws IOException{
+//        try {
+//            String filename = file.getOriginalFilename();
+//            AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(region).build();
+//            //PutObjectRequest putObjectrequest = new PutObjectRequest(namebucket,filename,file.getInputStream(), null);
+//            ObjectMetadata metadata = new ObjectMetadata();
+//            metadata.setContentLength(file.getSize());
+//            s3.putObject(namebucket, filename, file.getInputStream(),metadata);
+//        }catch (IOException e){
+//            throw new IOException(e.getMessage());
+//        }
+    }
+    public void update(ProductoRequest productoRequest, List<MultipartFile> files, MultipartFile fileprincipal) {
+        Optional<Producto> productoOptional = productoRepository.findById(productoRequest.id());
 
-        if (productoOptional.isEmpty()) throw new ResourceNotFoundException("Producto no encontrado con id: " + id);
+        if (productoOptional.isEmpty()) throw new ResourceNotFoundException("Producto no encontrado con id: " + productoRequest.id());
 
         Producto productoActual = productoOptional.get();
         CategoriaMarca categoriaMarcaActual = productoActual.getCategoriamarca();
@@ -152,6 +163,19 @@ public class ProductoService {
             // Guardamos la nueva subcategoría
             subCategoriaRepository.save(nuevaSubCategoria);
         }
+        List<Archivo> eliminados = productoActual.getArchivos().stream().filter(p -> !productoRequest.imageurl().contains(p.getUrl())).collect(Collectors.toList());
+        productoActual.getArchivos().removeAll(eliminados);
+
+        Archivo principal = productoActual.getArchivo_Principal();
+        if(fileprincipal != null && !fileprincipal.isEmpty()){
+
+            productoActual.setArchivo_Principal(null);
+            productoActual.setArchivo_Principal(s3service.uploadObject(fileprincipal,"imagen_producto"));
+        }
+        if(files != null && !files.isEmpty()){
+            productoActual.getArchivos().addAll(s3service.uploadsObjects(files, "imagen_producto"));
+        }
+
         // Guardamos el producto actualizado
         productoRepository.save(productoActual);
 
@@ -163,6 +187,15 @@ public class ProductoService {
         if (!subCategoriaActual.getId().equals(productoRequest.id_subcategoria())) {
             subCategoriaRepository.save(subCategoriaActual);
         }
+        if(principal != null){
+            archivoRepository.delete(principal);
+            s3service.deleteFile(principal);
+        }
+        if(!eliminados.isEmpty()){
+            archivoRepository.deleteAll(eliminados);
+            s3service.deleteFiles(eliminados);
+        }
+
     }
 
     public void delete(String id) {
@@ -191,7 +224,8 @@ public class ProductoService {
                 producto.getSubcategoria().getNombre(),
                 producto.getGarantia_cliente(),
                 producto.getGarantia_total(),
-                producto.getImagenuri()
+                producto.getArchivo_Principal() != null ? producto.getArchivo_Principal().getUrl() : "",
+                producto.getArchivos().stream().map(Archivo::getUrl).collect(Collectors.toList())
         );
     }
     public List<ProductoResponse> Busqueda(String keyboard){
@@ -200,50 +234,7 @@ public class ProductoService {
     }
 
     public List<ProductoResponse> getAllPaged(String search,List<String> marca, List<String> categoria,List<String> subcategoria, Pageable pageable) {
-        /*Page<Producto> productos;
-        if (marca != null && !marca.isEmpty() && categoria != null && !categoria.isEmpty()) {
-            productos = productoRepository.findByCategoriamarca_Marca_NombreInAndSubcategoria_Categoria_NombreIn(marca, categoria, pageable);
-        } else if ((marca == null || marca.isEmpty()) && categoria != null && !categoria.isEmpty()) {
-            productos = productoRepository.findBySubcategoria_Categoria_NombreIn(categoria, pageable);
-        } else if (marca != null && !marca.isEmpty() && (categoria == null || categoria.isEmpty())) {
-            productos = productoRepository.findByCategoriamarca_Marca_NombreIn(marca, pageable);
-        } else {
-            productos = productoRepository.findAll(pageable);
-        }
-*/
-        /*
-        Page<Producto> productos = Page.empty(pageable);  // Inicializar como página vacía
 
-        // Si hay marcas y (categorías o subcategorías) y search
-        if ((marca != null && !marca.isEmpty()) && (categoria != null && !categoria.isEmpty() || subcategoria != null && !subcategoria.isEmpty()) && (search != null && !search.isEmpty())) {
-
-            // Filtrar por marca y nombre
-            Page<Producto> productosMarca = productoRepository.findByCategoriamarca_Marca_NombreInAndNombreContaining(marca, search, pageable);
-
-            // Filtrar por categoría o subcategoría y nombre
-            Page<Producto> productosCategoria = productoRepository.findBySubcategoria_Categoria_NombreInOrSubcategoria_NombreInAndNombreContaining(categoria, subcategoria, search, pageable);
-
-            // Combinar resultados
-            Set<Producto> combinedProducts = new HashSet<>(productosMarca.getContent());
-            combinedProducts.retainAll(productosCategoria.getContent());
-
-            // Crear una página con los resultados combinados
-            productos = new PageImpl<>(new ArrayList<>(combinedProducts), pageable, combinedProducts.size());
-
-        } else if ((marca == null || marca.isEmpty()) && (categoria != null && !categoria.isEmpty() || subcategoria != null && !subcategoria.isEmpty())) {
-            // No hay marcas y SI(categorías o subcategorías) y search
-            productos = productoRepository.findBySubcategoria_Categoria_NombreInOrSubcategoria_NombreInAndNombreContaining(categoria, subcategoria, search, pageable);
-
-        } else if (marca != null && !marca.isEmpty() && (categoria == null || categoria.isEmpty()) && (subcategoria == null || subcategoria.isEmpty())) {
-            // SI marcas y NO(categorías o subcategorías) y search
-            productos = productoRepository.findByCategoriamarca_Marca_NombreInAndNombreContaining(marca, search, pageable);
-
-        } else {
-
-            productos = productoRepository.findAll(pageable);
-        }
-        return productos.stream().map(this::mapToProductoResponse).toList();
-        */
         Specification<Producto> specification = ProductoSpecifications.withFilters(marca, categoria, subcategoria, search);
         Page<Producto> productos = productoRepository.findAll(specification, pageable);
 
