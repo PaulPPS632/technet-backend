@@ -65,7 +65,7 @@ public class ProductoService {
         SubCategoria subCategoria = subCategoriaOptional.get();
         List<Archivo> archivos = new ArrayList<>();
         for (MultipartFile file : files) {
-            archivos.add(s3service.uploadObject(file,"imagen_producto"));
+            archivos.add(s3service.uploadObject(file,"imagen_producto", "producto"));
         }
         Producto nuevo = new Producto().builder()
                 .nombre(producto.nombre())
@@ -77,7 +77,7 @@ public class ProductoService {
                 .subcategoria(subCategoria)
                 .garantia_cliente(producto.garantia_cliente())
                 .garantia_total(producto.garantia_total())
-                .archivo_Principal(s3service.uploadObject(fileprincipal,"imagen_producto"))
+                .archivo_Principal(s3service.uploadObject(fileprincipal,"imagen_producto", "producto"))
                 .archivos(archivos)
                 .build();
 
@@ -170,10 +170,10 @@ public class ProductoService {
         if(fileprincipal != null && !fileprincipal.isEmpty()){
 
             productoActual.setArchivo_Principal(null);
-            productoActual.setArchivo_Principal(s3service.uploadObject(fileprincipal,"imagen_producto"));
+            productoActual.setArchivo_Principal(s3service.uploadObject(fileprincipal,"imagen_producto", "producto"));
         }
         if(files != null && !files.isEmpty()){
-            productoActual.getArchivos().addAll(s3service.uploadsObjects(files, "imagen_producto"));
+            productoActual.getArchivos().addAll(s3service.uploadsObjects(files, "imagen_producto", "producto"));
         }
 
         // Guardamos el producto actualizado

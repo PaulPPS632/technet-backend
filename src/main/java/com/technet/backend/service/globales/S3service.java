@@ -26,7 +26,7 @@ public class S3service {
     @Value("${aws.region}")
     private String region;
 
-    public Archivo uploadObject(MultipartFile file, String tipo) {
+    public Archivo uploadObject(MultipartFile file, String tipo, String descripcion) {
         String originalFilename = file.getOriginalFilename();
         String extension = StringUtils.getFilenameExtension(file.getOriginalFilename());
         String key = String.format("%s.%s", UUID.randomUUID(), extension);
@@ -46,18 +46,18 @@ public class S3service {
         }
         return archivoRepository.save(Archivo.builder()
                 .nombre(originalFilename)
-                .descripcion("descripcion_prueba")
+                .descripcion(descripcion)
                 .bucketname(namebucket)
                 .namekey(key)
                 .tipo_Archivo(tipo)
                 .url(String.format("https://%s.s3.%s.amazonaws.com/%s", namebucket, region, key))
                 .build());
     }
-    public List<Archivo> uploadsObjects(List<MultipartFile> files, String tipo) {
+    public List<Archivo> uploadsObjects(List<MultipartFile> files, String tipo, String descripcion) {
         return files.stream()
                 .map(file -> {
                     try {
-                        return uploadObject(file, tipo);
+                        return uploadObject(file, tipo, descripcion);
                     } catch (Exception e) {
                         throw new RuntimeException("Error uploading file: " + file.getOriginalFilename(), e);
                     }
