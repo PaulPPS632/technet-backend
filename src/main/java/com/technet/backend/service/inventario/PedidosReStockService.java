@@ -92,17 +92,9 @@ public class PedidosReStockService {
     private UserResponse maptoUserResponse(User user){
         return UserResponse.builder()
                 .id(user.getId())
-                .sub(user.getSub())
-                .name(user.getName())
-                .given_name(user.getGiven_name())
-                .family_name(user.getFamily_name())
-                .picture(user.getPicture())
+                .name(user.getUsername())
                 .email(user.getEmail())
-                .email_verified(user.isEmail_verified())
-                .locale(user.getLocale())
-                .tenantName(user.getTenantName())
                 .regist(user.isRegist())
-                .tiponegocio(user.getTiponegocio())
                 .rol(maptoRolResponse(user.getRol()))
                 .build();
     }

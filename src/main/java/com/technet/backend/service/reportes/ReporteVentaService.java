@@ -21,7 +21,7 @@ public class ReporteVentaService {
         return VentaReporteDto.builder()
                 .fecha(venta.getFecha_emision())
                 .usuario_id(venta.getUsuario().getId())
-                .usuario_name(venta.getUsuario().getName())
+                .usuario_name(venta.getUsuario().getUsername())
                 .monto(venta.getTotal())
                 .build();
     }

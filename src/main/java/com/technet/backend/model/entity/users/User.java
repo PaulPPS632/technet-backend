@@ -2,34 +2,58 @@ package com.technet.backend.model.entity.users;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
 
 @Entity
-@Table(name = "User")
+@Table(name = "User", uniqueConstraints = {@UniqueConstraint(columnNames = {"username"})})
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User
+public class User implements UserDetails
 {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    private String sub;
-    private String name;
-    private String given_name;
-    private String family_name;
-    private String picture;
+    @Column(nullable = false)
+    private String username;
     private String email;
-    private boolean email_verified;
-    private String locale;
     private String password;
-    private String tenantName;
     private boolean Regist;
-    private String tiponegocio;
     @ManyToOne
     @JoinColumn(name = "rol_id")
     private Rol rol;
 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(rol.getNombre()));
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }

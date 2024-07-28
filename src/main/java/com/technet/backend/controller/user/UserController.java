@@ -27,17 +27,9 @@ public class UserController {
     }
     private User maptoUser(UserInfo userInfo, User user){
         return new User().builder()
-                .sub(userInfo.sub())
-                .name(userInfo.name())
-                .given_name(userInfo.given_name())
-                .family_name(userInfo.family_name())
-                .picture(userInfo.picture())
+                .username(userInfo.name())
                 .email(userInfo.email())
-                .email_verified(userInfo.email_verified())
-                .locale(userInfo.locale())
-                .tenantName(user.getTenantName())
                 .Regist(false)
-                .tiponegocio(user.getTiponegocio())
                 .build();
     }
     @GetMapping("/login")

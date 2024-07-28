@@ -76,18 +76,10 @@ public class UserService {
     private UserAuthDto maptoUserAuthDTO(User user){
         return UserAuthDto.builder()
                 .id(user.getId())
-                .sub(user.getSub())
-                .name(user.getName())
-                .given_name(user.getGiven_name())
-                .family_name(user.getFamily_name())
-                .picture(user.getPicture())
+                .username(user.getUsername())
                 .email(user.getEmail())
-                .email_verified(user.isEmail_verified())
-                .locale(user.getLocale())
                 .password(user.getPassword())
-                .tenantName(user.getTenantName())
                 .regist(user.isRegist())
-                .tiponegocio(user.getTiponegocio())
                 .build();
     }
     public UserResponse Login(String email, String password) {
@@ -101,17 +93,9 @@ public class UserService {
     private UserResponse maptoUserResponse(User user){
         return UserResponse.builder()
                 .id(user.getId())
-                .sub(user.getSub())
-                .name(user.getName())
-                .given_name(user.getGiven_name())
-                .family_name(user.getFamily_name())
-                .picture(user.getPicture())
+                .name(user.getUsername())
                 .email(user.getEmail())
-                .email_verified(user.isEmail_verified())
-                .locale(user.getLocale())
-                .tenantName(user.getTenantName())
                 .regist(user.isRegist())
-                .tiponegocio(user.getTiponegocio())
                 .rol(maptoRolResponse(user.getRol()))
                 .build();
     }
@@ -151,17 +135,9 @@ public class UserService {
         Optional<Rol> rol = rolRepository.findById(usuarioResponse.rol().id());
         return User.builder()
                 .id(usuarioResponse.id())
-                .sub(usuarioResponse.sub())
-                .name(usuarioResponse.name())
-                .given_name(usuarioResponse.given_name())
-                .family_name(usuarioResponse.family_name())
-                .picture(usuarioResponse.picture())
+                .username(usuarioResponse.name())
                 .email(usuarioResponse.email())
-                .email_verified(usuarioResponse.email_verified())
-                .locale(usuarioResponse.locale())
-                .tenantName(usuarioResponse.tenantName())
                 .Regist(usuarioResponse.regist())
-                .tiponegocio(usuarioResponse.tiponegocio())
                 .rol(rol.orElseThrow())
                 .build();
     }
