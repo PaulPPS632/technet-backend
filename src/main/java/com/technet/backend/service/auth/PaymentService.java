@@ -32,7 +32,6 @@ public class PaymentService {
 
     private final RestTemplate restTemplate;
     public ResponseEntity<Map<String, Object>> postExternalData(String jsonBody) {
-        System.out.println("Received JSON body: " + jsonBody);
         String encodedCredentials = encodeCredentials(username, password);
 
         HttpHeaders headers = new HttpHeaders();

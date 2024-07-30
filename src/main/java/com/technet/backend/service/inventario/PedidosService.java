@@ -1,4 +1,8 @@
 package com.technet.backend.service.inventario;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.technet.backend.model.dto.inventario.PedidosReStockRequest;
 import com.technet.backend.model.dto.inventario.PedidosReStockResponse;
 import com.technet.backend.model.dto.inventario.ProductoResponse;
@@ -6,69 +10,74 @@ import com.technet.backend.model.dto.users.PrivilegioResponse;
 import com.technet.backend.model.dto.users.RolResponse;
 import com.technet.backend.model.dto.users.UserResponse;
 import com.technet.backend.model.entity.globales.Archivo;
-import com.technet.backend.model.entity.inventario.PedidosReStock;
+import com.technet.backend.model.entity.globales.Entidad;
+import com.technet.backend.model.entity.globales.TipoEntidad;
+import com.technet.backend.model.entity.inventario.Pedidos;
 import com.technet.backend.model.entity.inventario.Producto;
 import com.technet.backend.model.entity.users.Privilegio;
 import com.technet.backend.model.entity.users.Rol;
 import com.technet.backend.model.entity.users.User;
+import com.technet.backend.repository.globales.EntidadRepository;
 import com.technet.backend.repository.inventario.PedidosReStockRepository;
 import com.technet.backend.repository.inventario.ProductoRepository;
 import com.technet.backend.repository.users.UserRepository;
+import com.technet.backend.service.globales.EntidadService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class PedidosReStockService {
+public class PedidosService {
 
     private final PedidosReStockRepository pedidosReStockRepository;
-    private final UserRepository userRepository;
-    private final ProductoRepository productoRepository;
-
-    public void registrar(PedidosReStockRequest pedido){
-        pedidosReStockRepository.save(PedidosReStock.builder()
-                        .usuario(userRepository.findById(pedido.id_usuario()).orElseThrow())
-                        .fecha(pedido.fecha())
-                        .producto(productoRepository.findById(pedido.id_producto()).orElseThrow())
-                        .estado("pendiente")
-                        .cantidad(pedido.cantidad())
-                        .nota(pedido.nota())
-
-                .build());
-    }
-    public List<PedidosReStockResponse> Lista(){
-        List<PedidosReStock> pedidos = pedidosReStockRepository.findAll();
-        if(pedidos.isEmpty()){
-            return new ArrayList<>();
+    private final ObjectMapper objectMapper;
+    private final EntidadService entidadService;
+    public void registrar(Pedidos pedido){
+        try {
+            JsonNode rootNode = objectMapper.readTree(pedido.getDatospago());
+            JsonNode billingDetails = rootNode.path("datospago")
+                    .path("customer")
+                    .path("billingDetails");
+            String IdentityCode = billingDetails.path("identityCode").asText();
+            entidadService.EntidadRegisterJson(IdentityCode,
+                    billingDetails.path("firstName").asText() +" " +billingDetails.path("lastName").asText(),
+                    billingDetails.path("address").asText(),
+                    billingDetails.path("cellPhoneNumber").asText(),
+                    rootNode.path("datospago").path("customer").path("email").asText(),
+                    "DNI"
+            );
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
-        return pedidos.stream().map(this::mapToPedidosReStockResponse).toList();
+        pedido.setFecha(LocalDateTime.now());
+        pedidosReStockRepository.save(pedido);
+    }
+    public ResponseEntity<List<Pedidos>> Lista(){
+        List<Pedidos> pedidos = pedidosReStockRepository.findTop100ByOrderByFechaDesc();
+        if(pedidos.isEmpty()){
+            return ResponseEntity.status(500).body(new ArrayList<>());
+        }
+        return ResponseEntity.ok(pedidos);
     }
     public void editar(PedidosReStockRequest pedido){
-        PedidosReStock actual = pedidosReStockRepository.findById(pedido.id()).orElseThrow();
-        pedidosReStockRepository.save(PedidosReStock.builder()
+        Pedidos actual = pedidosReStockRepository.findById(pedido.id()).orElseThrow();
+        pedidosReStockRepository.save(Pedidos.builder()
                 .id(actual.getId())
-                .usuario(userRepository.findById(pedido.id_usuario()).orElseThrow())
                 .fecha(pedido.fecha())
-                .producto(productoRepository.findById(pedido.id_producto()).orElseThrow())
                 .estado(pedido.estado())
-                .cantidad(pedido.cantidad())
-                .nota(pedido.nota())
                 .build());
     }
-    private PedidosReStockResponse mapToPedidosReStockResponse(PedidosReStock pedido){
+    private PedidosReStockResponse mapToPedidosReStockResponse(Pedidos pedido){
         return PedidosReStockResponse.builder()
                 .id(pedido.getId())
-                .usuario(maptoUserResponse(pedido.getUsuario()))
                 .fecha(pedido.getFecha())
-                .producto(mapToProductoResponse(pedido.getProducto()))
                 .estado(pedido.getEstado())
-                .cantidad(pedido.getCantidad())
-                .nota(pedido.getNota())
-                .tenantId(pedido.getTenantId())
                 .build();
     }
     public ProductoResponse mapToProductoResponse(Producto producto){

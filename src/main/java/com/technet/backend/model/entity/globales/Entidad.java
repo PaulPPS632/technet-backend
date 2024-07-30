@@ -19,6 +19,7 @@ public class Entidad {
     @Column(length = 1000)
     private String nombre;
 
+    @Column(unique = true)
     private String documento;
 
     @Column(length = 1000)

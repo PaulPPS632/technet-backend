@@ -74,8 +74,23 @@ public class EntidadService {
     }
 
     public List<Entidad> getByIdDocumento(String documento) {
-        List<Entidad> entidades = entidadRepository.findByDocumento(documento);
+        List<Entidad> entidades = entidadRepository.findByDocumentoContaining(documento);
         if(entidades.isEmpty()) throw  new EntityNotFoundException("No se encontro la entidad con documento: " + documento);
         return entidades;
+    }
+    public void EntidadRegisterJson(String documento, String nombre, String direccion, String telefono,String email, String tipoEntidad){
+        Optional<Entidad> entidadOptional = entidadRepository.findByDocumento(documento);
+        if(entidadOptional.isEmpty()){
+            Entidad nuevo = new Entidad();
+            nuevo.setDocumento(documento);
+            nuevo.setNombre(nombre);
+            nuevo.setDireccion(direccion);
+            nuevo.setTelefono(telefono);
+            nuevo.setEmail(email);
+            if(tipoEntidad =="DNI"){
+                Optional<TipoEntidad> tipo = tipoEntidadRepository.findById(1L);
+                nuevo.setTipoEntidad(tipo.orElseThrow());
+            }
+        }
     }
 }

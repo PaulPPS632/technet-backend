@@ -13,27 +13,18 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class PedidosReStock {
+public class Pedidos {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @ManyToOne
-    @JoinColumn(name = "id_usuario")
-    private User usuario;
 
     private LocalDateTime fecha;
+    @Column(length = 9000)
+    private String productos;
 
-    @ManyToOne
-    @JoinColumn(name = "id_producto")
-    private Producto producto;
+    @Column(length = 5000)
+    private String datospago;
 
     private String estado;
-
-    @Column(length = 1000)
-    private String nota;
-
-    private Long cantidad;
-    private String tenantId;
-
 }

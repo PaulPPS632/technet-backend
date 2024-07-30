@@ -6,9 +6,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface EntidadRepository extends JpaRepository<Entidad, String> {
-    @Query("SELECT e FROM Entidad e WHERE e.documento LIKE %:keyword%")
-    List<Entidad> findByDocumento(@Param("keyword") String keyword);
+    List<Entidad> findByDocumentoContaining(String keyword);
 
+    Optional<Entidad> findByDocumento(String Documento);
 }
