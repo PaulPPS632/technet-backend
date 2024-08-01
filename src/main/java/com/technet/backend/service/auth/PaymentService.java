@@ -102,4 +102,26 @@ public class PaymentService {
             return ResponseEntity.status(500).body(response);
         }
     }
+    public ResponseEntity<Map<String, Object>> IPN(Map<String, Object> payload){
+        Map<String, Object> response = new HashMap<>();
+        try {
+
+            ObjectMapper mapper = new ObjectMapper();
+            String answerJson = mapper.writeValueAsString(payload.get("kr-answer"));
+            String hash = (String) payload.get("kr-hash");
+            String computedHash = Hex.encodeHexString(HmacUtils.hmacSha256(payment_hash, answerJson));
+
+
+            if (hash.equals(computedHash)) {
+                response.put("Status", true);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("Status", false);
+                return ResponseEntity.status(500).body(response);
+            }
+        } catch (Exception e) {
+            response.put("Status", false);
+            return ResponseEntity.status(500).body(response);
+        }
+    }
 }

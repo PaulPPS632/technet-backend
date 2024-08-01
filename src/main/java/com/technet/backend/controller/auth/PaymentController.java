@@ -20,7 +20,10 @@ public class PaymentController {
     public ResponseEntity<Map<String, Object>> validatePayment(@RequestBody Map<String, Object> payload) {
         return paymentService.validate(payload);
     }
-
+    @PostMapping("/ipn")
+    public ResponseEntity<Map<String, Object>> IPN(@RequestBody Map<String, Object> payload) {
+        return paymentService.IPN(payload);
+    }
     @PostMapping("/external-data")
     public ResponseEntity<Map<String, Object>> postExternalData(@RequestBody String body) {
         return paymentService.postExternalData(body);
