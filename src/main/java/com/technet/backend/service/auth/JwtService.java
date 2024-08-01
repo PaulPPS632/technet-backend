@@ -1,6 +1,5 @@
 package com.technet.backend.service.auth;
 
-import com.technet.backend.model.entity.users.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -85,8 +84,10 @@ public class JwtService {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             boolean isValid = isTokenValid(token, userDetails);
             response.put("estado", isValid);
+            response.put("username", username);
         } catch (Exception e) {
             response.put("estado", false);
+            response.put("username", "");
         }
         return response;
     }

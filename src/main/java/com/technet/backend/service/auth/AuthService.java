@@ -30,9 +30,10 @@ public class AuthService {
         String username = loginRequest.username();
         String password = loginRequest.password();
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username,password));
-        UserDetails user = userRepository.findByUsername(loginRequest.username()).orElseThrow();
-        String token = jwtService.getToken(user);
-        return AuthResponse.builder().token(token).build();
+        User user = userRepository.findByUsername(username).orElseThrow();
+        UserDetails userdetails = user;
+        String token = jwtService.getToken(userdetails);
+        return AuthResponse.builder().token(token).rol(user.getRol().getNombre()).username(user.getUsername()).build();
     }
 
     public AuthResponse register(UserAuthDto userAuthDto) {
@@ -50,10 +51,13 @@ public class AuthService {
         userRepository.save(user);
         return AuthResponse.builder()
                 .token(jwtService.getToken(user))
+                .rol(userAuthDto.rol())
+                .username(userAuthDto.username())
                 .build();
     }
     public Map<String, Object> validate(String token) {
-        return jwtService.validate(token);
+        Map<String, Object> response = jwtService.validate(token);
+        response.put("rol",userRepository.findByUsername((String) response.get("username")).orElseThrow().getRol().getNombre());
+        return response;
     }
-
 }

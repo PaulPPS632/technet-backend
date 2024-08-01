@@ -14,6 +14,7 @@ import com.technet.backend.repository.users.RolRepository;
 import com.technet.backend.repository.users.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,10 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -148,5 +146,13 @@ public class UserService {
 
     public LogicaNegocioUser Logica(String id) {
         return logicaNegocioUserRepository.findByUsuario(id).orElseThrow();
+    }
+
+    public ResponseEntity<UserResponse> getUserByUsername(String username) {
+        if(!username.isEmpty()){
+            return ResponseEntity.ok(maptoUserResponse(userRepository.findByUsername(username).orElseThrow()));
+        }else {
+            return ResponseEntity.status(500).body(UserResponse.builder().build());
+        }
     }
 }

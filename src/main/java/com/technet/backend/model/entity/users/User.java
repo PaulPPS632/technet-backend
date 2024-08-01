@@ -25,8 +25,11 @@ public class User implements UserDetails
 
     @Column(nullable = false)
     private String username;
+
     private String email;
+
     private String password;
+
     private boolean Regist;
     @ManyToOne
     @JoinColumn(name = "rol_id")

@@ -29,8 +29,6 @@ public class authController {
     }
     @PostMapping("/validate")
     public ResponseEntity<Map<String, Object>> validate(@RequestBody AuthResponse request){
-        String token = request.token();
-        Map<String, Object> response = jwtService.validate(token);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(authService.validate(request.token()));
     }
 }

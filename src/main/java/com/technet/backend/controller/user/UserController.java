@@ -6,12 +6,13 @@ import com.technet.backend.model.dto.users.UserAuthDto;
 import com.technet.backend.model.dto.users.UserResponse;
 import com.technet.backend.model.entity.users.LogicaNegocioUser;
 import com.technet.backend.model.entity.users.User;
-import com.technet.backend.repository.users.UserRepository;
 import com.technet.backend.service.User.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
@@ -19,7 +20,6 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-    private final UserRepository userRepository;
 
     @GetMapping("/regist")
     public UserResponse Regist(@RequestBody UserAuthDto usuario){
@@ -40,6 +40,10 @@ public class UserController {
     public List<UserResponse> GetAll(){
 
         return userService.getAll();
+    }
+    @GetMapping("/byusername/{username}")
+    public ResponseEntity<UserResponse> getUserByUsername(@PathVariable("username") String username){
+        return userService.getUserByUsername(username);
     }
     @GetMapping("/roles")
     public List<RolResponse> GetAllRoles(){

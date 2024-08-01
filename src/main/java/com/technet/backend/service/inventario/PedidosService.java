@@ -41,22 +41,23 @@ public class PedidosService {
     public void registrar(Pedidos pedido){
         try {
             JsonNode rootNode = objectMapper.readTree(pedido.getDatospago());
-            JsonNode billingDetails = rootNode.path("datospago")
-                    .path("customer")
+            JsonNode billingDetails = rootNode.path("customer")
                     .path("billingDetails");
             String IdentityCode = billingDetails.path("identityCode").asText();
             entidadService.EntidadRegisterJson(IdentityCode,
                     billingDetails.path("firstName").asText() +" " +billingDetails.path("lastName").asText(),
                     billingDetails.path("address").asText(),
                     billingDetails.path("cellPhoneNumber").asText(),
-                    rootNode.path("datospago").path("customer").path("email").asText(),
+                    rootNode.path("customer").path("email").asText(),
                     "DNI"
             );
+
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
         pedido.setFecha(LocalDateTime.now());
         pedidosReStockRepository.save(pedido);
+
     }
     public ResponseEntity<List<Pedidos>> Lista(){
         List<Pedidos> pedidos = pedidosReStockRepository.findTop100ByOrderByFechaDesc();
@@ -127,5 +128,13 @@ public class PedidosService {
                     .build();
         }
         return PrivilegioResponse.builder().build();
+    }
+
+    public ResponseEntity<List<Pedidos>> getPedidosByUsername(String username) {
+        return ResponseEntity.ok(pedidosReStockRepository.findByUsername(username));
+    }
+
+    public void cambios(Pedidos pedido) {
+        pedidosReStockRepository.save(pedido);
     }
 }

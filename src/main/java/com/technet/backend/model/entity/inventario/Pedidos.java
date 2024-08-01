@@ -27,4 +27,6 @@ public class Pedidos {
     private String datospago;
 
     private String estado;
+
+    private String username;
 }
