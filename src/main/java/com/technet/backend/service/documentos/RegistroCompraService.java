@@ -62,17 +62,17 @@ public class RegistroCompraService {
         Optional<TipoCondicion> tipoCondicionOptional = tipoCondicionRepository.findById(registrarCompraRequest.id_tipocondicion());
         Optional<TipoPago> tipoPagoOptional = tipoPagoRepository.findById(registrarCompraRequest.id_tipopago());
         Optional<TipoMoneda> tipoMonedaOptional = tipoMonedaRepository.findById(registrarCompraRequest.id_tipomoneda());
-        Optional<User> usuarioOptional = userRepository.findById(registrarCompraRequest.usuario_id());
+        Optional<User> usuarioOptional = userRepository.findByUsername(registrarCompraRequest.usuario_id());
         if(tipoCondicionOptional.isEmpty() || tipoPagoOptional.isEmpty() || tipoMonedaOptional.isEmpty()) throw new EntityNotFoundException("Existe un error alguno de los tipos enviados");
         List<Entidad> entidades = entidadService.getByIdDocumento(registrarCompraRequest.documento_cliente());
 
         Compra compra = new Compra();
         compra.setDocumento(registrarCompraRequest.documento());
         compra.setEntidad_proveedor(entidades.get(0));
-        compra.setUsuario(usuarioOptional.get());
-        compra.setTipocondicion(tipoCondicionOptional.get());
-        compra.setTipopago(tipoPagoOptional.get());
-        compra.setTipomoneda(tipoMonedaOptional.get());
+        compra.setUsuario(usuarioOptional.orElseThrow());
+        compra.setTipocondicion(tipoCondicionOptional.orElseThrow());
+        compra.setTipopago(tipoPagoOptional.orElseThrow());
+        compra.setTipomoneda(tipoMonedaOptional.orElseThrow());
         compra.setTipo_cambio(registrarCompraRequest.tipo_cambio());
         compra.setFecha_emision(registrarCompraRequest.fecha_emision());
         compra.setFecha_vencimiento(registrarCompraRequest.fecha_vencimiento());
@@ -82,15 +82,11 @@ public class RegistroCompraService {
         compra.setTotal(registrarCompraRequest.total());
         compra.setFechapago(registrarCompraRequest.fechapago());
         compra.setFormapago(registrarCompraRequest.formapago());
-        EstadoProducto estado = estadoProductoRepository.findById(1L).orElseThrow(() -> {
-            throw new RuntimeException("Error inesperado" );
-        });
+        EstadoProducto estado = estadoProductoRepository.findById(1L).orElseThrow(() -> new RuntimeException("Error inesperado"));
 
         List<DetalleCompra> detalleCompras = registrarCompraRequest.detalles().stream().flatMap(
                 detalleCompraRequest -> {
-                    Producto producto = productoRepository.findById(detalleCompraRequest.id_producto()).orElseThrow(() -> {
-                        throw new RuntimeException("Producto no encontrado para ID: " + detalleCompraRequest.id_producto() + ", nombre: " + detalleCompraRequest.nombre());
-                    });
+                    Producto producto = productoRepository.findById(detalleCompraRequest.id_producto()).orElseThrow(() -> new RuntimeException("Producto no encontrado para ID: " + detalleCompraRequest.id_producto() + ", nombre: " + detalleCompraRequest.nombre()));
                     Lote lote = crear_lote(producto);
                     Double cant = producto.getStock() + detalleCompraRequest.cantidad();
                     producto.setStock(cant);

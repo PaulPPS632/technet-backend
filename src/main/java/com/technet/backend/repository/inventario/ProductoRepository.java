@@ -1,4 +1,5 @@
 package com.technet.backend.repository.inventario;
+import com.technet.backend.model.dto.inventario.CategoriaProductoDTO;
 import com.technet.backend.model.entity.inventario.Producto;
 
 import org.springframework.data.domain.Page;
@@ -16,6 +17,17 @@ public interface ProductoRepository extends JpaRepository<Producto, String>, Jpa
 
     @Query("SELECT p FROM Producto p WHERE p.nombre LIKE %:keyword% OR p.descripcion LIKE %:keyword%")
     List<Producto> findByNombreOrDescripcionContaining(@Param("keyword") String keyword);
+    Page<Producto> findByOrderBySubcategoria_Categoria_NombreAsc(Pageable pageable, String keyword);
+
+    @Query("SELECT new com.technet.backend.model.dto.inventario.CategoriaProductoDTO(c.nombre, p) " +
+            "FROM Producto p " +
+            "JOIN p.subcategoria sc " +
+            "JOIN sc.categoria c " +
+            "ORDER BY c.nombre ASC")
+    List<CategoriaProductoDTO> findAllGroupedByCategoria();
+
+    @Query(value = "CALL GetProductosGroupedByCategoriaWithLimit(:limit)", nativeQuery = true)
+    List<Object[]> findAllGroupedByCategoriaWithLimit(@Param("limit") int limit);
     /*
     Page<Producto> findByCategoriamarca_Marca_NombreInAndSubcategoria_Categoria_NombreIn(List<String> marca, List<String> categoria, Pageable pageable);
 

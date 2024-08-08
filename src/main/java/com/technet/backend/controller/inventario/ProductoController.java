@@ -4,9 +4,11 @@ import com.technet.backend.service.inventario.ProductoService;
 import com.technet.backend.model.dto.inventario.ProductoRequest;
 import com.technet.backend.model.dto.inventario.ProductoResponse;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
@@ -69,5 +71,11 @@ public class ProductoController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void delete(@PathVariable("id") String id){
         productoService.delete(id);
+    }
+
+    @GetMapping("/CategoriaProducto")
+    public ResponseEntity<Map<String, List<ProductoResponse>>> getProductosGroupedByCategoria(@RequestParam(value = "limit", defaultValue = "5") int limit) {
+        Map<String, List<ProductoResponse>> productosPorCategoria = productoService.getProductosGroupedByCategoria(limit);
+        return ResponseEntity.ok(productosPorCategoria);
     }
 }

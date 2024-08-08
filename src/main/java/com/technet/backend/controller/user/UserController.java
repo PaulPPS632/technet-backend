@@ -1,9 +1,7 @@
 package com.technet.backend.controller.user;
 
 import com.technet.backend.model.dto.globales.UserInfo;
-import com.technet.backend.model.dto.users.RolResponse;
-import com.technet.backend.model.dto.users.UserAuthDto;
-import com.technet.backend.model.dto.users.UserResponse;
+import com.technet.backend.model.dto.users.*;
 import com.technet.backend.model.entity.users.LogicaNegocioUser;
 import com.technet.backend.model.entity.users.User;
 import com.technet.backend.service.User.UserService;
@@ -45,12 +43,16 @@ public class UserController {
     public ResponseEntity<UserResponse> getUserByUsername(@PathVariable("username") String username){
         return userService.getUserByUsername(username);
     }
+    @GetMapping("/dashboard")
+    public ResponseEntity<List<UserResponseV2>> GetUsuarioDashboard(){
+        return userService.getUserDashboard();
+    }
     @GetMapping("/roles")
     public List<RolResponse> GetAllRoles(){
         return userService.getAllRoles();
     }
     @PutMapping("/asignarrol")
-    public void putUsuario(@RequestBody UserResponse usuario){
+    public void putUsuario(@RequestBody UserRequest usuario){
         userService.AsignarRol(usuario);
     }
     @DeleteMapping("/{id}")

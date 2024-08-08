@@ -1,10 +1,7 @@
 package com.technet.backend.service.User;
 
 import com.technet.backend.model.dto.globales.UserInfo;
-import com.technet.backend.model.dto.users.PrivilegioResponse;
-import com.technet.backend.model.dto.users.RolResponse;
-import com.technet.backend.model.dto.users.UserAuthDto;
-import com.technet.backend.model.dto.users.UserResponse;
+import com.technet.backend.model.dto.users.*;
 import com.technet.backend.model.entity.users.LogicaNegocioUser;
 import com.technet.backend.model.entity.users.Privilegio;
 import com.technet.backend.model.entity.users.Rol;
@@ -124,9 +121,9 @@ public class UserService {
         return rolRepository.findAll().stream().map(this::maptoRolResponse).toList();
     }
 
-    public void AsignarRol(UserResponse usuario) {
+    public void AsignarRol(UserRequest usuario) {
         Optional<User> user = userRepository.findById(usuario.id());
-        user.orElseThrow().setRol(rolRepository.findById(usuario.rol().id()).orElseThrow());
+        user.orElseThrow().setRol(rolRepository.findByNombre(usuario.rol()).orElseThrow());
         userRepository.save(user.get());
     }
     private User maptoUser(UserResponse usuarioResponse){
@@ -154,5 +151,16 @@ public class UserService {
         }else {
             return ResponseEntity.status(500).body(UserResponse.builder().build());
         }
+    }
+    private UserResponseV2 maptoUserResponseV2(User user){
+        return UserResponseV2.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .username(user.getUsername())
+                .rol(maptoRolResponse(user.getRol()))
+                .build();
+    }
+    public ResponseEntity<List<UserResponseV2>> getUserDashboard() {
+        return ResponseEntity.ok(userRepository.findByRol_NombreNot("cliente").stream().map(this::maptoUserResponseV2).toList());
     }
 }

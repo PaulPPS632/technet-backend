@@ -1,5 +1,6 @@
 package com.technet.backend.service.inventario;
 import com.technet.backend.exception.ResourceNotFoundException;
+import com.technet.backend.model.dto.inventario.CategoriaProductoDTO;
 import com.technet.backend.model.entity.globales.Archivo;
 import com.technet.backend.model.entity.inventario.SubCategoria;
 import com.technet.backend.repository.globales.ArchivoRepository;
@@ -210,6 +211,19 @@ public class ProductoService {
     }
 
 
+
+    public List<ProductoResponse> Busqueda(String keyboard){
+        List<Producto> productos = productoRepository.findByNombreOrDescripcionContaining(keyboard);
+        return productos.stream().map(this::mapToProductoResponse).toList();
+    }
+
+    public List<ProductoResponse> getAllPaged(String search,List<String> marca, List<String> categoria,List<String> subcategoria, Pageable pageable) {
+
+        Specification<Producto> specification = ProductoSpecifications.withFilters(marca, categoria, subcategoria, search);
+        Page<Producto> productos = productoRepository.findAll(specification, pageable);
+
+        return productos.stream().map(this::mapToProductoResponse).toList();
+    }
     public ProductoResponse mapToProductoResponse(Producto producto){
         return new ProductoResponse(
                 producto.getId(),
@@ -228,16 +242,33 @@ public class ProductoService {
                 producto.getArchivos().stream().map(Archivo::getUrl).collect(Collectors.toList())
         );
     }
-    public List<ProductoResponse> Busqueda(String keyboard){
-        List<Producto> productos = productoRepository.findByNombreOrDescripcionContaining(keyboard);
-        return productos.stream().map(this::mapToProductoResponse).toList();
-    }
+    public Map<String, List<ProductoResponse>> getProductosGroupedByCategoria(int limit) {
+        List<Object[]> results = productoRepository.findAllGroupedByCategoriaWithLimit(limit);
+        Map<String, List<ProductoResponse>> productosPorCategoria = new HashMap<>();
+        for (Object[] result : results) {
+            String categoriaNombre = (String) result[9];
+            ProductoResponse productoResponse = new ProductoResponse(
+                    (String) result[0], // id
+                    (String) result[1], // nombre
+                    (String) result[2], // pn
+                    (String) result[3], // descripción
+                    result[4] != null ? ((Number) result[4]).doubleValue() : null, // stock
+                    result[5] != null ? ((Number) result[5]).doubleValue() : null, // precio
+                    "",
+                    "",
+                    (String) result[9],
+                    (String) result[6],
+                    result[7] != null ? ((Number) result[7]).doubleValue() : null,//garantia_cliente
+                    result[8] != null ? ((Number) result[8]).doubleValue() : null,//garantia_total
+                    (String) result[10], // archivo_principal_url
+                    result[11] != null ? Arrays.asList(((String) result[11]).split(",")) : Collections.emptyList() // archivos_urls
+            );
 
-    public List<ProductoResponse> getAllPaged(String search,List<String> marca, List<String> categoria,List<String> subcategoria, Pageable pageable) {
+            productosPorCategoria
+                    .computeIfAbsent(categoriaNombre, k -> new ArrayList<>())
+                    .add(productoResponse);
+        }
 
-        Specification<Producto> specification = ProductoSpecifications.withFilters(marca, categoria, subcategoria, search);
-        Page<Producto> productos = productoRepository.findAll(specification, pageable);
-
-        return productos.stream().map(this::mapToProductoResponse).toList();
+        return productosPorCategoria;
     }
 }

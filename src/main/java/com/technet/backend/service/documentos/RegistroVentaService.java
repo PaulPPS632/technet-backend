@@ -64,7 +64,7 @@ public class RegistroVentaService {
         Optional<TipoCondicion> tipoCondicionOptional = tipoCondicionRepository.findById(registrarVentaRequest.id_tipocondicion());
         Optional<TipoPago> tipoPagoOptional = tipoPagoRepository.findById(registrarVentaRequest.id_tipopago());
         Optional<TipoMoneda> tipoMonedaOptional = tipoMonedaRepository.findById(registrarVentaRequest.id_tipomoneda());
-        Optional<User> usuarioOptional = userRepository.findById(registrarVentaRequest.usuario_id());
+        Optional<User> usuarioOptional = userRepository.findByUsername(registrarVentaRequest.usuario_id());
         if(tipoCondicionOptional.isEmpty() || tipoPagoOptional.isEmpty() || tipoMonedaOptional.isEmpty()) throw new EntityNotFoundException("Existe un error alguno de los tipos enviados");
         List<Entidad> entidades = entidadService.getByIdDocumento(registrarVentaRequest.documento_cliente());
 
@@ -74,10 +74,10 @@ public class RegistroVentaService {
         Correlativo corr = correlativoService.generateCorrelativoEntity(registrarVentaRequest.prefijo(),registrarVentaRequest.numeracion());
         venta.setCorrelativo(corr);
         venta.setEntidad_cliente(entidades.get(0));
-        venta.setUsuario(usuarioOptional.get());
-        venta.setTipocondicion(tipoCondicionOptional.get());
-        venta.setTipopago(tipoPagoOptional.get());
-        venta.setTipomoneda(tipoMonedaOptional.get());
+        venta.setUsuario(usuarioOptional.orElseThrow());
+        venta.setTipocondicion(tipoCondicionOptional.orElseThrow());
+        venta.setTipopago(tipoPagoOptional.orElseThrow());
+        venta.setTipomoneda(tipoMonedaOptional.orElseThrow());
         venta.setTipo_cambio(registrarVentaRequest.tipo_cambio());
         venta.setFecha_emision(registrarVentaRequest.fecha_emision());
         venta.setFecha_vencimiento(registrarVentaRequest.fecha_vencimiento());

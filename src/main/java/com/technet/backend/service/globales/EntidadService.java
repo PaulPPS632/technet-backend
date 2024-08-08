@@ -87,10 +87,11 @@ public class EntidadService {
             nuevo.setDireccion(direccion);
             nuevo.setTelefono(telefono);
             nuevo.setEmail(email);
-            if(tipoEntidad =="DNI"){
+            if(tipoEntidad == "DNI"){
                 Optional<TipoEntidad> tipo = tipoEntidadRepository.findById(1L);
                 nuevo.setTipoEntidad(tipo.orElseThrow());
             }
+            entidadRepository.save(nuevo);
         }
     }
 }
