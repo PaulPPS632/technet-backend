@@ -173,7 +173,7 @@ public class ProductoService {
             productoActual.setArchivo_Principal(null);
             productoActual.setArchivo_Principal(s3service.uploadObject(fileprincipal,"imagen_producto", "producto"));
         }
-        if(files != null && !files.isEmpty()){
+        if(files != null && files.stream().anyMatch(file -> file != null && !file.getOriginalFilename().isEmpty())){
             productoActual.getArchivos().addAll(s3service.uploadsObjects(files, "imagen_producto", "producto"));
         }
 

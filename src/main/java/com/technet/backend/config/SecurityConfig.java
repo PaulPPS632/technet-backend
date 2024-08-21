@@ -29,6 +29,7 @@ public class SecurityConfig {
                                 authRequest
                                         .requestMatchers("/inventory/producto/paged").permitAll()
                                         .requestMatchers(HttpMethod.GET,"/inventory/producto/CategoriaProducto").permitAll()
+                                        .requestMatchers(HttpMethod.GET,"/inventory/producto/{id}").permitAll()
                                         .requestMatchers("/inventory/archivos/publicitaria").permitAll()
                                         .requestMatchers(HttpMethod.GET,"/inventory/marca").permitAll()
                                         .requestMatchers(HttpMethod.GET,"/inventory/categoria").permitAll()

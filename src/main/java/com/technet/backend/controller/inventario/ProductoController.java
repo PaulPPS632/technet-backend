@@ -61,8 +61,8 @@ public class ProductoController {
     @ResponseStatus(HttpStatus.OK)
     public void update(
             @RequestPart("producto") ProductoRequest producto,
-            @RequestPart("files") List<MultipartFile> files,
-            @RequestPart("fileprincipal") MultipartFile fileprincipal
+            @RequestPart(value = "files", required = false) List<MultipartFile> files,
+            @RequestPart(value="fileprincipal", required = false) MultipartFile fileprincipal
     ){
         productoService.update(producto, files,fileprincipal);
     }
