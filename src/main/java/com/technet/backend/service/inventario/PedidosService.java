@@ -44,6 +44,8 @@ public class PedidosService {
             JsonNode billingDetails = rootNode.path("customer")
                     .path("billingDetails");
             String IdentityCode = billingDetails.path("identityCode").asText();
+            pedido.setFecha(LocalDateTime.now());
+            pedidosReStockRepository.save(pedido);
             entidadService.EntidadRegisterJson(IdentityCode,
                     billingDetails.path("firstName").asText() +" " +billingDetails.path("lastName").asText(),
                     billingDetails.path("address").asText(),
@@ -55,8 +57,8 @@ public class PedidosService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        pedido.setFecha(LocalDateTime.now());
-        pedidosReStockRepository.save(pedido);
+
+
 
     }
     public ResponseEntity<List<Pedidos>> Lista(){
