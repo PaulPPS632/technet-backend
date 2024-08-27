@@ -9,6 +9,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -22,17 +23,17 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
+        DefaultSecurityFilterChain build = http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(
                         authRequest ->
                                 authRequest
                                         .requestMatchers("/inventory/producto/paged").permitAll()
-                                        .requestMatchers(HttpMethod.GET,"/inventory/producto/CategoriaProducto").permitAll()
-                                        .requestMatchers(HttpMethod.GET,"/inventory/producto/{id}").permitAll()
-                                        .requestMatchers("/inventory/archivos/publicitaria").permitAll()
-                                        .requestMatchers(HttpMethod.GET,"/inventory/marca").permitAll()
-                                        .requestMatchers(HttpMethod.GET,"/inventory/categoria").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/inventory/producto/CategoriaProducto").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/inventory/producto/{id}").permitAll()
+                                        .requestMatchers(HttpMethod.GET,"/inventory/archivos/publicitaria").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/inventory/marca").permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/inventory/categoria").permitAll()
                                         .requestMatchers("/payment/**").permitAll()
                                         .requestMatchers("/auth/**").permitAll()
                                         .anyRequest().authenticated()
@@ -42,5 +43,6 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
+        return build;
     }
 }
